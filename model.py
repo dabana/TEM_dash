@@ -10,7 +10,7 @@ import pandas as pd
 class Model(object):
 
     def __init__(self):
-        self.df = pd.DataFrame()
+        self.soundings = pd.DataFrame()
 
     def parseModel(self, h1, rho1, rho2, isV = True):
         path = "./MdlemAll/"
@@ -23,33 +23,40 @@ class Model(object):
         filename = path + filename + ".obs"
         with open(filename) as file:
             line_index = 0
-            position_index = 0
             skiped_lines = 5
-            measlist = []
+            sounding = []
+            timegates = []
+            timeGatesRecovered = False
             for line in file:
-                #print(line)
+                #Skip the first skiped_lines
                 if line_index >= skiped_lines:
-                    #Get the position
+                    #At the header of each sounding
                     if (line_index - skiped_lines) % 91 == 0:
-                        if len(measlist) > 0:
-                            self.df[label] = pd.Series(measlist)
-                        measlist = []
+                        #Save the sounding to the soundings dataframe
+                        if len(sounding) > 0:
+                            self.soundings[label] = pd.Series(sounding)
+                            sounding = []
+                            timeGatesRecovered = True 
+                        #Recover receiver position and direction
                         sounding_header = line.split()
                         rx_pos = sounding_header[1]
                         rx_dir = sounding_header[4]
                         label = rx_pos + "_" + rx_dir
-                        #print(label)
-                        position_index += 1
+                    #Save readings to the sounding
                     else:
-                        measurement = float(line.split()[2])
-                        #print(measurement)
-                        measlist.append(measurement)
-                #print(len(measlist))
+                        #Recover times gates once
+                        if timeGatesRecovered == False:
+                            timegates.append(float(line.split()[0]) * 1e6)
+                        sounding.append(float(line.split()[2]))
                 line_index += 1
+            #Save the last sounding to the soundings dataframe
+            if len(sounding) > 0:
+                self.soundings[label] = pd.Series(sounding)
+            self.soundings['time_us'] = timegates
 
 model = Model()
-model.parseModel(10, 100, 100, True)
-print(model.df.head(n=5))
+model.parseModel(10, 100, 100, isV=True)
+print(model.soundings.head(n=5))
 
         
 
