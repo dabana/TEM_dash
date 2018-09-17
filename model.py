@@ -10,8 +10,8 @@ import pandas as pd
 class Model(object):
 
     def __init__(self):
-        self.soundings = pd.DataFrame()
-        self.rx_positions = []
+        self._soundings = pd.DataFrame()
+        self._rx_positions = []
 
     def parseModel(self, h1, rho1, rho2, isV = True):
         path = "./MdlemAll/"
@@ -35,14 +35,14 @@ class Model(object):
                     if (line_index - skiped_lines) % 91 == 0:
                         #Save the sounding to the soundings dataframe
                         if len(sounding) > 0:
-                            self.soundings[label] = pd.Series(sounding)
+                            self._soundings[label] = pd.Series(sounding)
                             sounding = []
                             timeGatesRecovered = True 
                         #Recover receiver position and direction
                         sounding_header = line.split()
                         rx_pos = sounding_header[1]
                         rx_dir = sounding_header[4]
-                        self.rx_positions.append(float(rx_pos))
+                        self._rx_positions.append(float(rx_pos))
                         label = rx_pos + "_" + rx_dir
                     #Save readings to the sounding
                     else:
@@ -53,14 +53,37 @@ class Model(object):
                 line_index += 1
             #Save the last sounding to the soundings dataframe
             if len(sounding) > 0:
-                self.soundings[label] = pd.Series(sounding)
-            self.soundings['time_us'] = timegates
-            self.rx_positions = pd.DataFrame({'rx_pos': self.rx_positions})
+                self._soundings[label] = pd.Series(sounding)
+            self._soundings['time_us'] = timegates
+            #self._rx_positions = pd.DataFrame({'rx_pos': self._rx_positions})
+
+    def get_X_soundings(self):
+        df = self._soundings
+        return df[df.columns[2:-1:2]]
+
+    def get_Z_soundings(self):
+        df = self._soundings
+        return df[df.columns[1:-1:2]]
+
+    def get_inloop_sounding(self):
+        df = self._soundings
+        return df[df.columns[0]]
+
+    def get_timegates(self):
+        df = self._soundings
+        return df[df.columns[-1]]
+    
+    def get_rx_positions(self):
+        rx_positions = [str(pos) for pos in self._rx_positions[1::2]]
+        return rx_positions
+
 
 model = Model()
 model.parseModel(10, 100, 100, isV=True)
-print(model.soundings.head(n=5))
-#print(model.soundings.columns)
+print(model._soundings.head(n=5))
+alist = model.get_rx_positions()
+print(alist)
+#print(model._soundings.columns)
 #print(model.rx_positions)
 
         

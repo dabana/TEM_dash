@@ -10,8 +10,11 @@ app = dash.Dash()
 model = Model()
 model.parseModel(10, 100, 100, isV=True)
 
-df = model.soundings
-rx_pos = model.soundings.columns
+sndgs_x = model.get_X_soundings()
+sndgs_Z = model.get_Z_soundings()
+rx_pos = model.get_rx_positions()
+inloop = model.get_inloop_sounding()
+time = model.get_timegates()
 
 markdown_text = '''
 ### Dash and Markdown
@@ -44,14 +47,15 @@ app.layout = html.Div([
 def update_graph(rx_pos_index):
     label = rx_pos[rx_pos_index]
     print("THIS IS LABEL: " + label)
-    dff = df[label]
+    df = sndgs_x
+    dff = df[df.columns[rx_pos_index]]
 
     return dcc.Graph(
         id='soundings',
         figure={
             'data': [
                 go.Scatter(
-                    x=df['time_us'],
+                    x=time,
                     y=np.abs(dff),
                     text=np.abs(dff),
                     mode='markers',
