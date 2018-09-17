@@ -60,8 +60,8 @@ class Model(object):
 model = Model()
 model.parseModel(10, 100, 100, isV=True)
 print(model.soundings.head(n=5))
-print(model.soundings.columns)
-print(model.rx_positions)
+#print(model.soundings.columns)
+#print(model.rx_positions)
 
         
 
