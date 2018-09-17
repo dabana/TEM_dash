@@ -11,6 +11,7 @@ class Model(object):
 
     def __init__(self):
         self.soundings = pd.DataFrame()
+        self.rx_positions = []
 
     def parseModel(self, h1, rho1, rho2, isV = True):
         path = "./MdlemAll/"
@@ -41,6 +42,7 @@ class Model(object):
                         sounding_header = line.split()
                         rx_pos = sounding_header[1]
                         rx_dir = sounding_header[4]
+                        self.rx_positions.append(float(rx_pos))
                         label = rx_pos + "_" + rx_dir
                     #Save readings to the sounding
                     else:
@@ -53,10 +55,13 @@ class Model(object):
             if len(sounding) > 0:
                 self.soundings[label] = pd.Series(sounding)
             self.soundings['time_us'] = timegates
+            self.rx_positions = pd.DataFrame({'rx_pos': self.rx_positions})
 
 model = Model()
 model.parseModel(10, 100, 100, isV=True)
 print(model.soundings.head(n=5))
+print(model.soundings.columns)
+print(model.rx_positions)
 
         
 

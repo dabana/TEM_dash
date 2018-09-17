@@ -3,16 +3,16 @@ import dash_core_components as dcc
 import dash_html_components as html
 import pandas as pd
 import plotly.graph_objs as go
+from model import Model
 
 app = dash.Dash()
+model = Model()
+model.parseModel(10, 100, 100, isV=True)
 
-df = pd.read_csv(
-    'https://gist.githubusercontent.com/chriddyp/'
-    'cb5392c35661370d95f300086accea51/raw/'
-    '8e0768211f6b747c0db42a9ce9a0937dafcbd8b2/'
-    'indicators.csv')
+df = model.soundings
+rx_pos = model.rx_positions
 
-available_indicators = df['Indicator Name'].unique()
+sounding_labels = df.columns
 
 app.layout = html.Div([
     html.Div([
@@ -20,8 +20,8 @@ app.layout = html.Div([
         html.Div([
             dcc.Dropdown(
                 id='xaxis-column',
-                options=[{'label': i, 'value': i} for i in available_indicators],
-                value='Fertility rate, total (births per woman)'
+                #options=[{'label': i, 'value': i} for i in ['time_us', '0.0000_z']],
+                value='0.0000_z'
             ),
             dcc.RadioItems(
                 id='xaxis-type',
@@ -35,8 +35,8 @@ app.layout = html.Div([
         html.Div([
             dcc.Dropdown(
                 id='yaxis-column',
-                options=[{'label': i, 'value': i} for i in available_indicators],
-                value='Life expectancy at birth, total (years)'
+                #options=[{'label': i, 'value': i} for i in ['time_us', '0.0000_z']],
+                value='time_us'
             ),
             dcc.RadioItems(
                 id='yaxis-type',
@@ -51,11 +51,11 @@ app.layout = html.Div([
 
     dcc.Slider(
         id='year--slider',
-        min=df['Year'].min(),
-        max=df['Year'].max(),
-        value=df['Year'].max(),
+        min=rx_pos.min(),
+        max=rx_pos.max(),
+        value=rx_pos.min(),
         step=None,
-        marks={str(year): str(year) for year in df['Year'].unique()}
+        #marks={sounding_labels: sounding_labels[pos] for pos in rx_pos}
     )
 ])
 
@@ -69,13 +69,13 @@ app.layout = html.Div([
 def update_graph(xaxis_column_name, yaxis_column_name,
                  xaxis_type, yaxis_type,
                  year_value):
-    dff = df[df['Year'] == year_value]
+    dff = df[year_value]
 
     return {
         'data': [go.Scatter(
-            x=dff[dff['Indicator Name'] == xaxis_column_name]['Value'],
-            y=dff[dff['Indicator Name'] == yaxis_column_name]['Value'],
-            text=dff[dff['Indicator Name'] == yaxis_column_name]['Country Name'],
+            x=df[xaxis_column_name],
+            y=dff,
+            text=dff,
             mode='markers',
             marker={
                 'size': 15,
