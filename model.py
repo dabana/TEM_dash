@@ -77,7 +77,6 @@ class Model(object):
         rx_positions = [str(pos) for pos in self._rx_positions[1::2]]
         return rx_positions
 
-
 model = Model()
 model.parseModel(10, 100, 100, isV=True)
 print(model._soundings.head(n=5))

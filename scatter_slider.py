@@ -9,18 +9,25 @@ from model import Model
 app = dash.Dash()
 model = Model()
 model.parseModel(10, 100, 100, isV=True)
+rx_pos = model.get_rx_positions()
 
 sndgs_x = model.get_X_soundings()
-sndgs_Z = model.get_Z_soundings()
-rx_pos = model.get_rx_positions()
-inloop = model.get_inloop_sounding()
+sndgs_z = model.get_Z_soundings()
 time = model.get_timegates()
 
 axis_list = [
-    ('time (microsecond)', 't'),
-    ('X component (V)', 'x'),
-    ('Z component (V)', 'z')
+    'Time (microsecond)',
+    'X component (V)',
+    'Z component (V)',
 ]
+
+Output_dict= {
+    axis_list[0]: time,
+    axis_list[1]: sndgs_x, 
+    axis_list[2]: sndgs_z
+}
+
+
 
 markdown_text = '''
 ### Dash and Markdown
@@ -38,8 +45,8 @@ app.layout = html.Div([
     html.Div([
         dcc.Dropdown(
             id='xaxis-column',
-            options=[{'label': i, 'value': j} for i, j in axis_list],
-            value='time'
+            options=[{'label': i, 'value': i} for i in axis_list],
+            value=axis_list[0]
         ),
         dcc.RadioItems(
             id='xaxis-type',
@@ -52,8 +59,8 @@ app.layout = html.Div([
     html.Div([
         dcc.Dropdown(
             id='yaxis-column',
-            options=[{'label': i, 'value': j} for i, j in axis_list],
-            value='z'
+            options=[{'label': i, 'value': i} for i in axis_list],
+            value=axis_list[1]
         ),
         dcc.RadioItems(
             id='yaxis-type',
@@ -81,41 +88,45 @@ app.layout = html.Div([
     dash.dependencies.Output('graph', 'children'),
     [dash.dependencies.Input('rx_positions', 'value'),
     dash.dependencies.Input('xaxis-type', 'value'),
-    dash.dependencies.Input('yaxis-type', 'value')]
+    dash.dependencies.Input('yaxis-type', 'value'),
+    dash.dependencies.Input('xaxis-column', 'value'),
+    dash.dependencies.Input('yaxis-column', 'value')]
     )
-def update_graph(rx_pos_index, xaxis_type, yaxis_type):
-    label = rx_pos[rx_pos_index]
-    print("THIS IS LABEL: " + label)
-    df = sndgs_x
-    dff = df[df.columns[rx_pos_index]]
+def update_graph(rx_pos_index, xaxis_type, yaxis_type, xaxis_col_val, yaxis_col_val):
 
-    return dcc.Graph(
-        id='soundings',
-        figure={
-            'data': [
-                go.Scatter(
-                    x=time,
-                    y= np.abs(dff) if yaxis_type == 'Log' else dff,
-                    text=np.abs(dff),
-                    mode='markers',
-                    opacity=0.7,
-                    marker={
-                        'size': 15,
-                        'line': {'width': 0.5, 'color': 'white'},
-                        'color': ['red' if i < 0 else 'blue' for i in dff]
-                    },
-                    name=label
+    rx_pos_label = rx_pos[rx_pos_index]
+    xisT = xaxis_col_val == axis_list[0]
+    yisT = yaxis_col_val == axis_list[0]
+    if yaxis_col_val != xaxis_col_val:
+        dfy = Output_dict[yaxis_col_val]
+        dfx = Output_dict[xaxis_col_val]
+        dffy = dfy if yisT else dfy[dfy.columns[rx_pos_index]]
+        dffx = dfx if xisT else dfx[dfx.columns[rx_pos_index]]
+        return dcc.Graph(
+            id='soundings',
+            figure={
+                'data': [
+                    go.Scatter(
+                        x= np.abs(dffx) if xaxis_type == 'Log' else dffx,
+                        y= np.abs(dffy) if yaxis_type == 'Log' else dffy,
+                        mode='markers',
+                        opacity=0.7,
+                        marker={
+                            'size': 15,
+                            'line': {'width': 0.5, 'color': 'white'},
+                            'color': ['red' if i < 0 else 'blue' for i in dffy]
+                        }
+                    )
+                ],
+                'layout': go.Layout(
+                    xaxis={'type': 'linear' if xaxis_type == 'Linear' else 'log', 'title': xaxis_col_val},
+                    yaxis={'type': 'linear' if yaxis_type == 'Linear' else 'log', 'title': yaxis_col_val},
+                    margin={'l': 40, 'b': 40, 't': 10, 'r': 10},
+                    legend={'x': 0, 'y': 1},
+                    hovermode='closest'
                 )
-            ],
-            'layout': go.Layout(
-                xaxis={'type': 'linear' if xaxis_type == 'Linear' else 'log', 'title': 'Time (microseconds)'},
-                yaxis={'type': 'linear' if yaxis_type == 'Linear' else 'log', 'title': 'Voltage (V)'},
-                margin={'l': 40, 'b': 40, 't': 10, 'r': 10},
-                legend={'x': 0, 'y': 1},
-                hovermode='closest'
-            )
-        }
-    )
+            }
+        )
 
 
 if __name__ == '__main__':
