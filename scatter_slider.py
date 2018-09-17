@@ -28,16 +28,48 @@ if this is your first introduction to Markdown!
 
 
 app.layout = html.Div([
-    html.Div(id = 'graph'),
 
-    dcc.Slider(
-        id='rx_positions',
-        min=0,
-        max=len(rx_pos),
-        value=0,
-        step=None,
-        marks={str(i): str(rx_pos[i]) for i in range(0, len(rx_pos))}
-    )
+    html.Div([
+        dcc.Dropdown(
+            id='xaxis-column',
+            options=[{'label': i, 'value': i} for i in ['time', 'x', 'z']],
+            value='time'
+        ),
+        dcc.RadioItems(
+            id='xaxis-type',
+            options=[{'label': i, 'value': i} for i in ['Linear', 'Log']],
+            value='Linear',
+            labelStyle={'display': 'inline-block'}
+        )
+    ],style={'width': '48%', 'display': 'inline-block'}),
+
+    html.Div([
+        dcc.Dropdown(
+            id='yaxis-column',
+            options=[{'label': i, 'value': i} 
+            for i in ['time (microsecond)', 'X component (V)', 'Z component (V)']],
+            value='z'
+        ),
+        dcc.RadioItems(
+            id='yaxis-type',
+            options=[{'label': i, 'value': i} for i in ['Linear', 'Log']],
+            value='Linear',
+            labelStyle={'display': 'inline-block'}
+        )
+    ],style={'width': '48%', 'float': 'right', 'display': 'inline-block'}),
+
+    html.Div([
+        html.Div(id = 'graph'),
+
+        dcc.Slider(
+            id='rx_positions',
+            min=0,
+            max=len(rx_pos),
+            value=0,
+            step=None,
+            marks={str(i): str(rx_pos[i]) for i in range(0, len(rx_pos))}
+        )
+    ])
 ])
 
 @app.callback(
