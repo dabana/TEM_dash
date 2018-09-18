@@ -175,20 +175,17 @@ def update_graph(rx_pos_index, xaxis_type, yaxis_type, xaxis_col_val, yaxis_col_
 )
 def update_quiver(Output_dict):
     Output_dict_dser = json.loads(Output_dict)
-    dft = pd.read_json(Output_dict_dser[axis_list[0]], orient='split')['time_us']
+    dft = pd.read_json(Output_dict_dser[axis_list[0]], orient='split')
     dfx = pd.read_json(Output_dict_dser[axis_list[3]], orient='split')
     dfy = pd.read_json(Output_dict_dser[axis_list[4]], orient='split')
 
     xx = np.array([float(pos) for pos in rx_pos])
-    yy = np.log(dft.values)
+    yy = dft.iloc[range(0,90,5)].values
+    yy = np.log(yy)
     x, y = np.meshgrid(xx, yy)
     scale = 1e3
-    u = dfx.values 
-    #u = u * scale
-    #u = np.sign(u) * np.log(np.abs(u))
-    v = dfy.values 
-    #v = v * scale
-    #v = np.sign(v) * np.log(np.abs(v))
+    u = dfx.iloc[range(0,90,5)].values 
+    v = dfy.iloc[range(0,90,5)].values
 
     norm = (u ** 2 + v ** 2) * 0.5
     norm = np.log(norm)
@@ -196,9 +193,7 @@ def update_quiver(Output_dict):
     u = norm * np.cos(angle)
     v = norm * np.sin(angle)
 
-    fig = ff.create_quiver(x, y, u, v,
-                        scale=1,
-                        line=dict(width=1))
+    fig = ff.create_quiver(x, y, u, v, scale = 1)
     return fig
 
 @app.callback(
