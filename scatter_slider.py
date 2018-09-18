@@ -8,18 +8,8 @@ from model import Model
 
 app = dash.Dash()
 model = Model()
-
 model.parseModel(10, 100, 100, isV=True)
 rx_pos = model.get_rx_positions()
-time = model.get_timegates()
-
-sndgs_x = model.get_X_soundings()
-sndgs_z = model.get_Z_soundings()
-
-model.parseModel(10, 100, 100, isV=False)
-sndgs_Bx = model.get_X_soundings()
-sndgs_Bz = model.get_Z_soundings()
-
 axis_list = [
     'Time (microsecond)',
     'dBx/dt (V)',
@@ -27,15 +17,6 @@ axis_list = [
     'Bx (nT)',
     'Bz (nT)'
 ]
-
-Output_dict= {
-    axis_list[0]: time,
-    axis_list[1]: sndgs_x, 
-    axis_list[2]: sndgs_z,
-    axis_list[3]: sndgs_Bx,
-    axis_list[4]: sndgs_Bz
-}
-
 
 
 markdown_text = '''
@@ -90,7 +71,36 @@ app.layout = html.Div([
             step=None,
             marks={str(i): str(rx_pos[i]) for i in range(0, len(rx_pos))}
         )
-    ])
+    ]),
+
+    html.Div([
+        dcc.Slider(
+            id='h1',
+            min=10,  #h1 = 10:5:70
+            max=70,
+            value=10,
+            step=5,
+            marks={str(h): str(h) for h in range(10, 70, 5)}
+        ),
+        dcc.Slider(
+            id='rho1',
+            min=20,  #rho1 = 2:0.2:4.4
+            max=46,
+            value=20,
+            step=2,
+            marks={str(e): '{:6.0f}'.format(10**(e*0.1)) for e in range(20, 46, 2)}
+        ),
+        dcc.Slider(
+            id='rho2',
+            min=20,  #rho2 = 2:0.2:4.4
+            max=46,
+            value=20,
+            step=2,
+            marks={str(e): '{:6.0f}'.format(10**(e*0.1)) for e in range(20, 46, 2)}
+        ),
+    ],style={'width': '50%', 'display': 'inline-block'}),
+
+    html.Div(id = 'modelHasChanged')
 ])
 
 @app.callback(
@@ -99,9 +109,10 @@ app.layout = html.Div([
     dash.dependencies.Input('xaxis-type', 'value'),
     dash.dependencies.Input('yaxis-type', 'value'),
     dash.dependencies.Input('xaxis-column', 'value'),
-    dash.dependencies.Input('yaxis-column', 'value')]
+    dash.dependencies.Input('yaxis-column', 'value'),
+    dash.dependencies.Input('modelHasChanged', 'children')]
     )
-def update_graph(rx_pos_index, xaxis_type, yaxis_type, xaxis_col_val, yaxis_col_val):
+def update_graph(rx_pos_index, xaxis_type, yaxis_type, xaxis_col_val, yaxis_col_val, Output_dict):
 
     rx_pos_label = rx_pos[rx_pos_index]
     xisT = xaxis_col_val == axis_list[0]
@@ -137,6 +148,36 @@ def update_graph(rx_pos_index, xaxis_type, yaxis_type, xaxis_col_val, yaxis_col_
             }
         )
 
+@app.callback(
+    dash.dependencies.Output('modelHasChanged', 'children'),
+    [dash.dependencies.Input('h1', 'value'),
+    dash.dependencies.Input('rho1', 'value'),
+    dash.dependencies.Input('rho2', 'value'),]
+    )
+def update_model(h1, rho1, rho2):
+    h1 = str(h1)
+    rho1 = 10**(rho1*0.1)
+    rho1 = '{:.0f}'.format(rho1) if rho1 % 100 == 0 else '{:6.4f}'.format(rho1)
+    rho2 = 10**(rho2*0.1) 
+    rho2 = '{:.0f}'.format(rho2) if rho2 % 100 == 0 else '{:6.4f}'.format(rho2)
+    
+    model.parseModel(h1, rho1, rho2, isV=True)
+    time = model.get_timegates()
+    rx_pos = model.get_rx_positions()
+    sndgs_x = model.get_X_soundings()
+    sndgs_z = model.get_Z_soundings()
+    model.parseModel(h1, rho1, rho2, isV=False)
+    sndgs_Bx = model.get_X_soundings()
+    sndgs_Bz = model.get_Z_soundings()
+
+    Output_dict= {
+        axis_list[0]: time,
+        axis_list[1]: sndgs_x, 
+        axis_list[2]: sndgs_z,
+        axis_list[3]: sndgs_Bx,
+        axis_list[4]: sndgs_Bz
+    }
+    return Output_dict
 
 if __name__ == '__main__':
     app.run_server()
