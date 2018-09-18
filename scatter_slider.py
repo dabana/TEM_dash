@@ -4,6 +4,7 @@ import dash_html_components as html
 import pandas as pd
 import numpy as np
 import plotly.graph_objs as go
+import json
 from model import Model
 
 app = dash.Dash()
@@ -100,7 +101,7 @@ app.layout = html.Div([
         ),
     ],style={'width': '50%', 'display': 'inline-block'}),
 
-    html.Div(id = 'modelHasChanged')
+    html.Div(id = 'modelHasChanged', style={'display': 'none'})
 ])
 
 @app.callback(
@@ -113,15 +114,16 @@ app.layout = html.Div([
     dash.dependencies.Input('modelHasChanged', 'children')]
     )
 def update_graph(rx_pos_index, xaxis_type, yaxis_type, xaxis_col_val, yaxis_col_val, Output_dict):
-
+    Output_dict_dser = json.loads(Output_dict)
     rx_pos_label = rx_pos[rx_pos_index]
     xisT = xaxis_col_val == axis_list[0]
     yisT = yaxis_col_val == axis_list[0]
+    
     if yaxis_col_val != xaxis_col_val:
-        dfy = Output_dict[yaxis_col_val]
-        dfx = Output_dict[xaxis_col_val]
-        dffy = dfy if yisT else dfy[dfy.columns[rx_pos_index]]
-        dffx = dfx if xisT else dfx[dfx.columns[rx_pos_index]]
+        dfy = pd.read_json(Output_dict_dser[yaxis_col_val], orient='split')
+        dfx = pd.read_json(Output_dict_dser[xaxis_col_val], orient='split')
+        dffy = dfy['time_us'] if yisT else dfy[dfy.columns[rx_pos_index]]
+        dffx = dfx['time_us'] if xisT else dfx[dfx.columns[rx_pos_index]]
         return dcc.Graph(
             id='soundings',
             figure={
@@ -169,15 +171,14 @@ def update_model(h1, rho1, rho2):
     model.parseModel(h1, rho1, rho2, isV=False)
     sndgs_Bx = model.get_X_soundings()
     sndgs_Bz = model.get_Z_soundings()
-
     Output_dict= {
-        axis_list[0]: time,
-        axis_list[1]: sndgs_x, 
-        axis_list[2]: sndgs_z,
-        axis_list[3]: sndgs_Bx,
-        axis_list[4]: sndgs_Bz
+        axis_list[0]: time.to_json(orient='split', date_format='iso'),
+        axis_list[1]: sndgs_x.to_json(orient='split', date_format='iso'),
+        axis_list[2]: sndgs_z.to_json(orient='split', date_format='iso'),
+        axis_list[3]: sndgs_Bx.to_json(orient='split', date_format='iso'),
+        axis_list[4]: sndgs_Bz.to_json(orient='split', date_format='iso')
     }
-    return Output_dict
+    return json.dumps(Output_dict)
 
 if __name__ == '__main__':
     app.run_server()

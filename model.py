@@ -71,7 +71,7 @@ class Model(object):
 
     def get_timegates(self):
         df = self._soundings
-        return df[df.columns[-1]]
+        return df[df.columns[-1]].to_frame()
     
     def get_rx_positions(self):
         rx_positions = [str(pos) for pos in self._rx_positions[1::2]]
