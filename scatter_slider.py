@@ -63,6 +63,7 @@ app.layout = html.Div([
 
     html.Div([
         html.Div(id = 'graph'),
+        html.Div(dcc.Graph(id='quiver')),
         html.Div(
             dcc.Slider(
                 id='rx_positions',
