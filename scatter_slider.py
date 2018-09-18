@@ -155,7 +155,7 @@ def update_graph(rx_pos_index, xaxis_type, yaxis_type, xaxis_col_val, yaxis_col_
                         marker={
                             'size': 15,
                             'line': {'width': 0.5, 'color': 'white'},
-                            'color': ['red' if i < 0 else 'blue' for i in dffy]
+                            'color': ['red' if i < 0 else 'blue' for i in dffy] 
                         }
                     )
                 ],
@@ -178,6 +178,7 @@ def update_quiver(Output_dict):
     dft = pd.read_json(Output_dict_dser[axis_list[0]], orient='split')
     dfx = pd.read_json(Output_dict_dser[axis_list[3]], orient='split')
     dfy = pd.read_json(Output_dict_dser[axis_list[4]], orient='split')
+    dfn = pd.read_json(Output_dict_dser[axis_list[5]], orient='split')
 
     xx = np.array([float(pos) for pos in rx_pos])
     yy = dft.iloc[range(0,90,5)].values * 5 #need to make sure x and y scales match 
@@ -187,7 +188,7 @@ def update_quiver(Output_dict):
     u = dfx.iloc[range(0,90,5)].values 
     v = dfy.iloc[range(0,90,5)].values
 
-    norm = (u ** 2 + v ** 2) * 0.5
+    norm = dfn.iloc[range(0,90,5)].values
     norm = np.log(norm)
     angle = np.arctan(v/u)
     u = norm * np.cos(angle)
