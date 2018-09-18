@@ -4,6 +4,7 @@ import dash_html_components as html
 import pandas as pd
 import numpy as np
 import plotly.graph_objs as go
+import plotly.figure_factory as ff
 import json
 from model import Model
 
@@ -163,6 +164,22 @@ def update_graph(rx_pos_index, xaxis_type, yaxis_type, xaxis_col_val, yaxis_col_
                 )
             }
         )
+
+@app.callback(
+    dash.dependencies.Output('quiver', 'figure'),
+    [dash.dependencies.Input('xaxis-type', 'value'),
+    dash.dependencies.Input('yaxis-type', 'value'),
+    dash.dependencies.Input('xaxis-column', 'value'),
+    dash.dependencies.Input('yaxis-column', 'value'),
+    dash.dependencies.Input('modelHasChanged', 'children')]
+)
+def update_quiver(xaxis_type, yaxis_type, xaxis_col_val, yaxis_col_val, Output_dict):
+    x,y = np.meshgrid(np.arange(0, 2, .2), np.arange(0, 2, .2))
+    u = np.cos(x)*y
+    v = np.sin(x)*y
+
+    fig = ff.create_quiver(x, y, u, v)
+    return fig
 
 @app.callback(
     dash.dependencies.Output('modelHasChanged', 'children'),
