@@ -166,16 +166,30 @@ def update_graph(rx_pos_index, xaxis_type, yaxis_type, xaxis_col_val, yaxis_col_
 
 @app.callback(
     dash.dependencies.Output('quiver', 'figure'),
-    [dash.dependencies.Input('xaxis-type', 'value'),
-    dash.dependencies.Input('yaxis-type', 'value'),
-    dash.dependencies.Input('xaxis-column', 'value'),
-    dash.dependencies.Input('yaxis-column', 'value'),
-    dash.dependencies.Input('modelHasChanged', 'children')]
+    [dash.dependencies.Input('modelHasChanged', 'children')]
 )
-def update_quiver(xaxis_type, yaxis_type, xaxis_col_val, yaxis_col_val, Output_dict):
-    x,y = np.meshgrid(np.arange(0, 2, .2), np.arange(0, 2, .2))
-    u = np.cos(x)*y
-    v = np.sin(x)*y
+def update_quiver(Output_dict):
+    Output_dict_dser = json.loads(Output_dict)
+    dft = pd.read_json(Output_dict_dser[axis_list[0]], orient='split')['time_us']
+    dfx = pd.read_json(Output_dict_dser[axis_list[1]], orient='split')
+    dfy = pd.read_json(Output_dict_dser[axis_list[2]], orient='split')
+
+    scale_factor = 1e2
+    xx = np.array([float(pos) for pos in rx_pos])
+    yy = dft.values
+    x = xx.repeat(yy.size)
+    y = yy.repeat(xx.size)
+    u = dfx.values.flatten() * scale_factor
+    v = dfy.values.flatten()  * scale_factor
+
+    #x,y = np.meshgrid(np.arange(0, 2, .2), np.arange(0, 2, .2))
+    #u = np.cos(x)*y
+    #v = np.sin(x)*y
+
+    print("x is size " + str(x.size))
+    print("y is size " + str(y.size))
+    print("u is size " + str(u.size))
+    print("v is size " + str(v.size))
 
     fig = ff.create_quiver(x, y, u, v)
     return fig
