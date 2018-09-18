@@ -16,7 +16,8 @@ axis_list = [
     'dBx/dt (V)',
     'dBz/dt (V)',
     'Bx (nT)',
-    'Bz (nT)'
+    'Bz (nT)',
+    'Btotal (nT)'
 ]
 
 
@@ -183,12 +184,18 @@ def update_model(h1, rho1, rho2):
     model.parseModel(h1, rho1, rho2, isV=False)
     sndgs_Bx = model.get_X_soundings()
     sndgs_Bz = model.get_Z_soundings()
+    norm_B = sndgs_Bx.pow(2).values
+    norm_B2 = sndgs_Bz.pow(2).values
+    norm_B += norm_B2
+    norm_B = pd.DataFrame(norm_B)
+    print(str(norm_B.head(n=3)))
     Output_dict= {
         axis_list[0]: time.to_json(orient='split', date_format='iso'),
         axis_list[1]: sndgs_x.to_json(orient='split', date_format='iso'),
         axis_list[2]: sndgs_z.to_json(orient='split', date_format='iso'),
         axis_list[3]: sndgs_Bx.to_json(orient='split', date_format='iso'),
-        axis_list[4]: sndgs_Bz.to_json(orient='split', date_format='iso')
+        axis_list[4]: sndgs_Bz.to_json(orient='split', date_format='iso'),
+        axis_list[5]: norm_B.to_json(orient='split', date_format='iso')
     }
     return json.dumps(Output_dict)
 
