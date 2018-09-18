@@ -8,23 +8,32 @@ from model import Model
 
 app = dash.Dash()
 model = Model()
+
 model.parseModel(10, 100, 100, isV=True)
 rx_pos = model.get_rx_positions()
+time = model.get_timegates()
 
 sndgs_x = model.get_X_soundings()
 sndgs_z = model.get_Z_soundings()
-time = model.get_timegates()
+
+model.parseModel(10, 100, 100, isV=False)
+sndgs_Bx = model.get_X_soundings()
+sndgs_Bz = model.get_Z_soundings()
 
 axis_list = [
     'Time (microsecond)',
-    'X component (V)',
-    'Z component (V)',
+    'dBx/dt (V)',
+    'dBz/dt (V)',
+    'Bx (nT)',
+    'Bz (nT)'
 ]
 
 Output_dict= {
     axis_list[0]: time,
     axis_list[1]: sndgs_x, 
-    axis_list[2]: sndgs_z
+    axis_list[2]: sndgs_z,
+    axis_list[3]: sndgs_Bx,
+    axis_list[4]: sndgs_Bz
 }
 
 
