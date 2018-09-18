@@ -63,42 +63,54 @@ app.layout = html.Div([
 
     html.Div([
         html.Div(id = 'graph'),
-
-        dcc.Slider(
-            id='rx_positions',
-            min=0,
-            max=len(rx_pos),
-            value=0,
-            step=None,
-            marks={str(i): str(rx_pos[i]) for i in range(0, len(rx_pos))}
+        html.Div(
+            dcc.Slider(
+                id='rx_positions',
+                min=0,
+                max=len(rx_pos),
+                value=0,
+                step=None,
+                marks={str(i): str(rx_pos[i]) for i in range(0, len(rx_pos))}
+            ), 
+        style={'height': '50px', 'width': '100%','display': 'inline-block'}
         )
     ]),
 
     html.Div([
-        dcc.Slider(
-            id='h1',
-            min=10,  #h1 = 10:5:70
-            max=70,
-            value=10,
-            step=5,
-            marks={str(h): str(h) for h in range(10, 70, 5)}
+        html.Div(
+            dcc.Slider(
+                id='h1',
+                min=10,  #h1 = 10:5:70
+                max=70,
+                value=10,
+                step=5,
+                marks={str(h): str(h) for h in range(10, 70, 5)}
+            ), 
+        style={'height': '50px', 'width': '100%','display': 'inline-block'}
         ),
-        dcc.Slider(
-            id='rho1',
-            min=20,  #rho1 = 2:0.2:4.4
-            max=46,
-            value=20,
-            step=2,
-            marks={str(e): '{:6.0f}'.format(10**(e*0.1)) for e in range(20, 46, 2)}
+
+        html.Div(
+            dcc.Slider(
+                id='rho1',
+                min=20,  #rho1 = 2:0.2:4.4
+                max=46,
+                value=20,
+                step=2,
+                marks={str(e): '{:6.0f}'.format(10**(e*0.1)) for e in range(20, 46, 2)}
+            ),
+        style={'height': '50px', 'width': '100%','display': 'inline-block'}
         ),
-        dcc.Slider(
-            id='rho2',
-            min=20,  #rho2 = 2:0.2:4.4
-            max=46,
-            value=20,
-            step=2,
-            marks={str(e): '{:6.0f}'.format(10**(e*0.1)) for e in range(20, 46, 2)}
-        ),
+        html.Div(
+            dcc.Slider(
+                id='rho2',
+                min=20,  #rho2 = 2:0.2:4.4
+                max=46,
+                value=20,
+                step=2,
+                marks={str(e): '{:6.0f}'.format(10**(e*0.1)) for e in range(20, 46, 2)}
+            ),
+        style={'height': '50px', 'width': '100%','display': 'inline-block'}
+        )
     ],style={'width': '50%', 'display': 'inline-block'}),
 
     html.Div(id = 'modelHasChanged', style={'display': 'none'})
