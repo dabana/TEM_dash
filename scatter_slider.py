@@ -64,11 +64,13 @@ app.layout = html.Div([
     ],style={'width': '48%', 'float': 'right', 'display': 'inline-block'}),
 
     html.Div([
-        html.Div(id = 'graph'),
         html.Div(
-            dcc.Graph(id='quiver',
-            style={'height': '1000px', 'width': '100%','display': 'inline-block'}
-            )
+            id = 'graph', 
+            style={'width': '48%', 'float': 'right', 'display': 'inline-block'}
+        ),
+        html.Div(
+            id='quiver',
+            style={'width': '48%','display': 'inline-block'}
         ),
         html.Div(
             dcc.Slider(
@@ -170,7 +172,7 @@ def update_graph(rx_pos_index, xaxis_type, yaxis_type, xaxis_col_val, yaxis_col_
         )
 
 @app.callback(
-    dash.dependencies.Output('quiver', 'figure'),
+    dash.dependencies.Output('quiver', 'children'),
     [dash.dependencies.Input('modelHasChanged', 'children')]
 )
 def update_quiver(Output_dict):
@@ -182,12 +184,9 @@ def update_quiver(Output_dict):
 
     xx = np.array([float(pos) for pos in rx_pos])
     yy = dft.iloc[range(0,90,5)].values * 5 #need to make sure x and y scales match 
-    yy = yy
     x, y = np.meshgrid(xx, yy)
-    scale = 1e3
     u = dfx.iloc[range(0,90,5)].values 
     v = dfy.iloc[range(0,90,5)].values
-
     norm = dfn.iloc[range(0,90,5)].values
     norm = np.log(norm)
     angle = np.arctan(v/u)
@@ -195,7 +194,7 @@ def update_quiver(Output_dict):
     v = norm * np.sin(angle)
 
     fig = ff.create_quiver(x, y, u, v, scale = 1)
-    return fig
+    return dcc.Graph(id = 'quiver_plot', figure = fig)
 
 @app.callback(
     dash.dependencies.Output('modelHasChanged', 'children'),
