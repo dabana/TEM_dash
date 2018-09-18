@@ -174,15 +174,23 @@ def update_quiver(Output_dict):
     dfx = pd.read_json(Output_dict_dser[axis_list[1]], orient='split')
     dfy = pd.read_json(Output_dict_dser[axis_list[2]], orient='split')
 
-    scale_factor = 1e2
     xx = np.array([float(pos) for pos in rx_pos])
     yy = dft.values
-    x = xx.repeat(yy.size)
-    y = yy.repeat(xx.size)
-    u = dfx.values.flatten() * scale_factor
-    v = dfy.values.flatten()  * scale_factor
+    x, y = np.meshgrid(xx, yy)
+    print(x)
+    print(str(len(x)))
+    print(y)
+    print(str(len(y)))
+    #ix, iy = np.meshgrid(np.arange(0, len(xx), 1), np.arange(0, len(yy), 1))
+    #x = xx.repeat(yy.size)
+    #y = yy.repeat(xx.size)
+    
+    u = dfx.values
+    u = np.sign(u) * np.log(np.abs(u))
+    v = dfy.values
+    v = np.sign(v) * np.log(np.abs(v))
 
-    #x,y = np.meshgrid(np.arange(0, 2, .2), np.arange(0, 2, .2))
+    #x,y = np.meshgrid(np.arange(0, 3, .2), np.arange(0, 2, .2))
     #u = np.cos(x)*y
     #v = np.sin(x)*y
 
@@ -191,7 +199,9 @@ def update_quiver(Output_dict):
     print("u is size " + str(u.size))
     print("v is size " + str(v.size))
 
-    fig = ff.create_quiver(x, y, u, v)
+    fig = ff.create_quiver(x, y, u, v,
+                        scale=1,
+                        line=dict(width=1))
     return fig
 
 @app.callback(
