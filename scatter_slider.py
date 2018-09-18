@@ -183,7 +183,7 @@ def update_quiver(Output_dict):
     dfn = pd.read_json(Output_dict_dser[axis_list[5]], orient='split')
 
     xx = np.array([float(pos) for pos in rx_pos])
-    yy = dft.iloc[range(0,90,5)].values #need to make sure x and y scales match 
+    yy = dft.iloc[range(0,90,5)].values * 5 #need to make sure x and y scales match 
     x, y = np.meshgrid(xx, yy)
     u = dfx.iloc[range(0,90,5)].values 
     v = dfy.iloc[range(0,90,5)].values
