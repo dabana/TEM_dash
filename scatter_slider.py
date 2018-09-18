@@ -66,11 +66,11 @@ app.layout = html.Div([
     html.Div([
         html.Div(
             id = 'graph', 
-            style={'width': '48%', 'float': 'right', 'display': 'inline-block'}
+            style={'width': '68%', 'float': 'right', 'display': 'inline-block'}
         ),
         html.Div(
             id='quiver',
-            style={'width': '48%','display': 'inline-block'}
+            style={'width': '68%','display': 'inline-block'}
         ),
         html.Div(
             dcc.Slider(
@@ -183,12 +183,12 @@ def update_quiver(Output_dict):
     dfn = pd.read_json(Output_dict_dser[axis_list[5]], orient='split')
 
     xx = np.array([float(pos) for pos in rx_pos])
-    yy = dft.iloc[range(0,90,5)].values * 5 #need to make sure x and y scales match 
+    yy = dft.iloc[range(0,90,5)].values #need to make sure x and y scales match 
     x, y = np.meshgrid(xx, yy)
     u = dfx.iloc[range(0,90,5)].values 
     v = dfy.iloc[range(0,90,5)].values
     norm = dfn.iloc[range(0,90,5)].values
-    norm = np.log(norm)
+    norm = 5
     angle = np.arctan(v/u)
     u = norm * np.cos(angle)
     v = norm * np.sin(angle)
@@ -220,7 +220,7 @@ def update_model(h1, rho1, rho2):
     norm_B = sndgs_Bx.pow(2).values
     norm_B2 = sndgs_Bz.pow(2).values
     norm_B += norm_B2
-    norm_B = pd.DataFrame(norm_B)
+    norm_B = pd.DataFrame(norm_B ** 0.5)
     print(str(norm_B.head(n=3)))
     Output_dict= {
         axis_list[0]: time.to_json(orient='split', date_format='iso'),
