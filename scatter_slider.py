@@ -192,5 +192,28 @@ def update_model(h1, rho1, rho2):
     }
     return json.dumps(Output_dict)
 
+@app.callback(
+    dash.dependencies.Output('yaxis-type', 'value'),
+    [dash.dependencies.Input('yaxis-column', 'value'),
+    dash.dependencies.Input('xaxis-column', 'value')]
+    )
+def force_linear_yaxis_type(yaxis_col_val, xaxis_col_val):
+    if (xaxis_col_val != axis_list[0]) and (yaxis_col_val != axis_list[0]):
+        return 'Linear'
+    else:
+        return 'Log'
+
+@app.callback(
+    dash.dependencies.Output('xaxis-type', 'value'),
+    [dash.dependencies.Input('yaxis-column', 'value'),
+    dash.dependencies.Input('xaxis-column', 'value')]
+    )
+def force_linear_xaxis_type(yaxis_col_val, xaxis_col_val):
+    if (xaxis_col_val != axis_list[0]) and (yaxis_col_val != axis_list[0]):
+        return 'Linear'
+    else:
+        return 'Log'
+
+
 if __name__ == '__main__':
     app.run_server()
