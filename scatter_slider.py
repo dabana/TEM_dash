@@ -73,11 +73,6 @@ app.layout = html.Div([
             style={'width': '98%','display': 'inline-block'}
         ),
         html.Div(
-            dcc.Graph(id='quiver',
-            style={'height': '1000px', 'width': '100%','display': 'inline-block'}
-            )
-        ),
-        html.Div(
             dcc.Slider(
                 id='rx_positions',
                 min=0,
@@ -202,11 +197,8 @@ def update_quiver(Output_dict):
 
     fig = ff.create_quiver(x, y, u, v, scale = 1)
     fig.layout = go.Layout(
-        #width = 800,
-        #height = 500,
         xaxis=dict(
-            title = 'Spacing (m)',
-            range = [0, 300]
+            title = 'Spacing (m)'
         ),
         yaxis=dict(
             title = 'Time (us)',
