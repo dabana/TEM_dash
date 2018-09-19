@@ -188,14 +188,16 @@ def update_quiver(Output_dict):
     x, y = np.meshgrid(xx, yy)
     u = dfx.iloc[selected_idx].values 
     v = dfy.iloc[selected_idx].values
-    #norm = dfn.iloc[range(0,90,5)].values
-    norm = 5
+    norm = dfn.iloc[selected_idx].values
+    #Normalise norm by smallest value then take log
+    norm_sc = norm / np.amin(norm)
+    norm = np.sign(norm) * np.log(np.abs(norm_sc))
     angle = np.arctan(v/u)
     scaleratio = 0.75 # need to make sure x and y scales match
     u = norm * np.cos(angle) * scaleratio
     v = norm * np.sin(angle)
 
-    fig = ff.create_quiver(x, y, u, v, scale = 1)
+    fig = ff.create_quiver(x, y, u, v, scale = 1.2)
     fig.layout = go.Layout(
         xaxis=dict(
             title = 'Spacing (m)'
