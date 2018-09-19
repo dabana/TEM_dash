@@ -66,11 +66,11 @@ app.layout = html.Div([
     html.Div([
         html.Div(
             id = 'graph', 
-            style={'width': '68%', 'float': 'right', 'display': 'inline-block'}
+            style={'width': '98%', 'float': 'right', 'display': 'inline-block'}
         ),
         html.Div(
             id='quiver',
-            style={'width': '68%','display': 'inline-block'}
+            style={'width': '98%','display': 'inline-block'}
         ),
         html.Div(
             dcc.Slider(
@@ -183,17 +183,33 @@ def update_quiver(Output_dict):
     dfn = pd.read_json(Output_dict_dser[axis_list[5]], orient='split')
 
     xx = np.array([float(pos) for pos in rx_pos])
-    yy = dft.iloc[range(0,90,5)].values * 5 #need to make sure x and y scales match 
+    selected_idx = range(0, 90, 10)
+    yy = dft.iloc[selected_idx].values  
     x, y = np.meshgrid(xx, yy)
-    u = dfx.iloc[range(0,90,5)].values 
-    v = dfy.iloc[range(0,90,5)].values
-    norm = dfn.iloc[range(0,90,5)].values
+    u = dfx.iloc[selected_idx].values 
+    v = dfy.iloc[selected_idx].values
+    #norm = dfn.iloc[range(0,90,5)].values
     norm = 5
     angle = np.arctan(v/u)
-    u = norm * np.cos(angle)
+    scaleratio = 2 # need to make sure x and y scales match
+    u = norm * np.cos(angle) * scaleratio
     v = norm * np.sin(angle)
 
     fig = ff.create_quiver(x, y, u, v, scale = 1)
+    fig.layout = go.Layout(
+        #width = 800,
+        #height = 500,
+        xaxis=dict(
+            title = 'Spacing (m)',
+            range = [0, 300]
+        ),
+        yaxis=dict(
+            title = 'Time (us)',
+            scaleratio = 2,
+            scaleanchor="x",
+            autorange='reversed'
+        )
+    )
     return dcc.Graph(id = 'quiver_plot', figure = fig)
 
 @app.callback(
