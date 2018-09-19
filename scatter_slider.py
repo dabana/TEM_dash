@@ -200,7 +200,9 @@ def update_quiver(Output_dict):
     v = norm * np.sin(angle)
 
     #Create quiver plot
-    fig = ff.create_quiver(x, y, u, v, scale = 1.2)
+    fig = ff.create_quiver(x, y, u, v, 
+                        scale = 1.2,
+                        name='B-field in X-Z plane')
 
     # Create ZCMO points
     Bz = dfBz.values
@@ -222,7 +224,7 @@ def update_quiver(Output_dict):
     zcmo_scat = go.Scatter(x=xx, y=zcmo,
                         mode='markers',
                         marker=dict(size=12),
-                        name='points')
+                        name='Bz zero-crossing')
 
     # Add points to figure
     fig.add_trace(zcmo_scat)
