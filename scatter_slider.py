@@ -180,16 +180,16 @@ def update_graph(rx_pos_index, xaxis_type, yaxis_type, xaxis_col_val, yaxis_col_
 def update_quiver(Output_dict):
     Output_dict_dser = json.loads(Output_dict)
     dft = pd.read_json(Output_dict_dser[axis_list[0]], orient='split')
-    dfx = pd.read_json(Output_dict_dser[axis_list[3]], orient='split')
-    dfy = pd.read_json(Output_dict_dser[axis_list[4]], orient='split')
+    dfBx = pd.read_json(Output_dict_dser[axis_list[3]], orient='split')
+    dfBz = pd.read_json(Output_dict_dser[axis_list[4]], orient='split')
     dfn = pd.read_json(Output_dict_dser[axis_list[5]], orient='split')
 
     xx = np.array([float(pos) for pos in rx_pos])
     selected_idx = range(0, 90, 10)
     yy = dft.iloc[selected_idx].values  
     x, y = np.meshgrid(xx, yy)
-    u = dfx.iloc[selected_idx].values 
-    v = dfy.iloc[selected_idx].values
+    u = dfBx.iloc[selected_idx].values 
+    v = dfBz.iloc[selected_idx].values
     norm = dfn.iloc[selected_idx].values
     #Normalise norm by smallest value then take log
     norm_sc = norm / np.amin(norm)
@@ -199,7 +199,27 @@ def update_quiver(Output_dict):
     u = norm * np.cos(angle) * scaleratio
     v = norm * np.sin(angle)
 
+    #Create quiver plot
     fig = ff.create_quiver(x, y, u, v, scale = 1.2)
+
+    # Create ZCMO points
+    Bz = dfBz.values
+    t = dft.values
+    i_maxneg = np.argmin(np.abs(Bz) * np.array(Bz < 0), 0)
+    i_minpos = np.array([i + 1 if i < 89 else 0 for i in i_maxneg]) 
+    Bz_maxneg = np.array([Bz[i_maxneg[i], i] for i in range(0,17)])
+    Bz_minpos = np.array([Bz[i_minpos[i], i] for i in range(0,17)])
+    slope = (Bz_minpos - Bz_maxneg) / (t[i_minpos].flatten() - t[i_maxneg].flatten())
+    zcmo = t[i_maxneg].flatten() - Bz_maxneg / slope
+
+    zcmo_scat = go.Scatter(x=xx, y=zcmo,
+                        mode='markers',
+                        marker=dict(size=12),
+                        name='points')
+
+    # Add points to figure
+    fig.add_trace(zcmo_scat)
+
     fig.layout = go.Layout(
         xaxis=dict(
             title = 'Spacing (m)'
