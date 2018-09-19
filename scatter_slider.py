@@ -205,8 +205,10 @@ def update_quiver(Output_dict):
     # Create ZCMO points
     Bz = dfBz.values
     t = dft.values
-    i_maxneg = np.argmin(np.abs(Bz) * np.array(Bz < 0), 0)
-    i_minpos = np.array([i + 1 if i < 89 else 0 for i in i_maxneg]) 
+    filt = np.array(np.sign(Bz[:-2,:]) * np.sign(Bz[2:,:]))
+    filt = np.append(np.ones((1,17)), filt, 0)    
+    i_maxneg = np.argmin(filt, 0)
+    i_minpos = np.array([i_maxneg[i] + 1 if (Bz[i_maxneg[i], i] < 0) else 0 for i in range(0,17)])
     Bz_maxneg = np.array([Bz[i_maxneg[i], i] for i in range(0,17)])
     Bz_minpos = np.array([Bz[i_minpos[i], i] for i in range(0,17)])
     slope = (Bz_minpos - Bz_maxneg) / (t[i_minpos].flatten() - t[i_maxneg].flatten())
