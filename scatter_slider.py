@@ -73,6 +73,11 @@ app.layout = html.Div([
             style={'width': '98%','display': 'inline-block'}
         ),
         html.Div(
+            dcc.Graph(id='quiver',
+            style={'height': '1000px', 'width': '100%','display': 'inline-block'}
+            )
+        ),
+        html.Div(
             dcc.Slider(
                 id='rx_positions',
                 min=0,
