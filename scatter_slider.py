@@ -65,10 +65,12 @@ app.layout = html.Div([
 
     html.Div([
         html.Div(
+            dcc.Graph(id = 'soundings'),
             id = 'graph', 
             style={'width': '98%', 'float': 'right', 'display': 'inline-block'}
         ),
         html.Div(
+            dcc.Graph(id = 'quiver_plot'),
             id='quiver',
             style={'width': '98%','display': 'inline-block'}
         ),
@@ -210,6 +212,20 @@ def update_quiver(Output_dict):
         )
     )
     return dcc.Graph(id = 'quiver_plot', figure = fig)
+
+@app.callback(
+    dash.dependencies.Output('rx_positions', 'value'),
+    [dash.dependencies.Input('quiver_plot', 'clickData')]
+)
+def update_slider_from_quiver(click_data):
+    if click_data is None:
+        return 0
+    else:
+        v = click_data['points'][0]['x']
+        a = [float(i) for i in rx_pos]
+        closest_i = np.searchsorted(a, v)
+        return closest_i
+
 
 @app.callback(
     dash.dependencies.Output('modelHasChanged', 'children'),
