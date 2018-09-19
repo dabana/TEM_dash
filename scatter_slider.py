@@ -191,7 +191,7 @@ def update_quiver(Output_dict):
     #norm = dfn.iloc[range(0,90,5)].values
     norm = 5
     angle = np.arctan(v/u)
-    scaleratio = 2 # need to make sure x and y scales match
+    scaleratio = 0.75 # need to make sure x and y scales match
     u = norm * np.cos(angle) * scaleratio
     v = norm * np.sin(angle)
 
@@ -202,7 +202,7 @@ def update_quiver(Output_dict):
         ),
         yaxis=dict(
             title = 'Time (us)',
-            scaleratio = 2,
+            scaleratio = scaleratio,
             scaleanchor="x",
             autorange='reversed'
         )
