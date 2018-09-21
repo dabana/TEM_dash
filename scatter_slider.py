@@ -8,8 +8,10 @@ import plotly.figure_factory as ff
 import json
 from model import Model
 
-app = dash.Dash()
-model = Model()
+app = dash.Dash() # Instentiate a Dash app
+model = Model() # Instentiate a TEM model
+
+
 model.parseModel(10, 100, 100, isV=True)
 rx_pos = model.get_rx_positions()
 axis_list = [
@@ -21,18 +23,14 @@ axis_list = [
     'Btotal (nT)'
 ]
 
-
+# Just an exemple of markdown text
 markdown_text = '''
 ### Dash and Markdown
 
-Dash apps can be written in Markdown.
-Dash uses the [CommonMark](http://commonmark.org/)
-specification of Markdown.
-Check out their [60 Second Markdown Tutorial](http://commonmark.org/help/)
-if this is your first introduction to Markdown!
+This is a plot.
 '''
 
-
+# Layout of the application
 app.layout = html.Div([
 
     html.Div([
@@ -127,6 +125,8 @@ app.layout = html.Div([
     html.Div(id = 'modelHasChanged', style={'display': 'none'})
 ])
 
+
+# Updates the graph when axis columns or axis types or model data change. 
 @app.callback(
     dash.dependencies.Output('graph', 'children'),
     [dash.dependencies.Input('rx_positions', 'value'),
@@ -173,62 +173,82 @@ def update_graph(rx_pos_index, xaxis_type, yaxis_type, xaxis_col_val, yaxis_col_
             }
         )
 
+
+# Updates the quiver plot when model data changes
 @app.callback(
     dash.dependencies.Output('quiver', 'children'),
     [dash.dependencies.Input('modelHasChanged', 'children')]
 )
 def update_quiver(Output_dict):
-    Output_dict_dser = json.loads(Output_dict)
-    dft = pd.read_json(Output_dict_dser[axis_list[0]], orient='split')
-    dfBx = pd.read_json(Output_dict_dser[axis_list[3]], orient='split')
-    dfBz = pd.read_json(Output_dict_dser[axis_list[4]], orient='split')
-    dfn = pd.read_json(Output_dict_dser[axis_list[5]], orient='split')
+    # Parse the output data dictonary
+    Output_dict_dser = json.loads(Output_dict) 
+    dft = pd.read_json(# time
+        Output_dict_dser[axis_list[0]], orient='split') 
+    dfBx = pd.read_json(# x-compnent of B-field 
+        Output_dict_dser[axis_list[3]], orient='split')
+    dfBz = pd.read_json(# z-component of B-field
+        Output_dict_dser[axis_list[4]], orient='split')
+    dfn = pd.read_json(# Norm of the B-field (intensity)
+        Output_dict_dser[axis_list[5]], orient='split')
 
+    # Generate the grid on which arrows are plotted
+    #selected_idx = range(0, len(dft.index), 10) #sub-sample the time
+    selected_idx = range(0, len(dft.index), 10)
     xx = np.array([float(pos) for pos in rx_pos])
-    selected_idx = range(0, 90, 10)
     yy = dft.iloc[selected_idx].values  
     x, y = np.meshgrid(xx, yy)
-    u = dfBx.iloc[selected_idx].values 
-    v = dfBz.iloc[selected_idx].values
+
+    # Scale the arrow lengths for plotting
     norm = dfn.iloc[selected_idx].values
-    #Normalise norm by smallest value then take log
     norm_sc = norm / np.amin(norm)
     norm = np.sign(norm) * np.log(np.abs(norm_sc))
+
+    # Compute the u and v vectors defining each arrow
+    u = dfBx.iloc[selected_idx].values 
+    v = dfBz.iloc[selected_idx].values
     angle = np.arctan(v/u)
-    scaleratio = 0.75 # need to make sure x and y scales match
+    scaleratio = 0.75 # workaround for Plotly.py issue#1187
     u = norm * np.cos(angle) * scaleratio
     v = norm * np.sin(angle)
 
-    #Create quiver plot
+    # Create B-field quiver plot
     fig = ff.create_quiver(x, y, u, v, 
                         scale = 1.2,
                         name='B-field in X-Z plane')
 
-    # Create ZCMO points
+    # Compute the zero-crossing move-out (ZCMO) of Bz
+    # ZCMO: Time at which Bz changes sign for each rx positions
     Bz = dfBz.values
     t = dft.values
-    filt = np.array(np.sign(Bz[:-2,:]) * np.sign(Bz[2:,:]))
-    filt = np.append(np.ones((1,17)), filt, 0)    
-    i_maxneg = np.argmin(filt, 0)
+    range_rx_pos = range(0, len(rx_pos))
+    signflip = np.array(np.sign(Bz[:-2, :]) * np.sign(Bz[2:, :]))
+    signflip = np.append(np.ones((1, len(rx_pos))), signflip, 0)
+
+    # Linear interpolation of the zero-crossing time    
+    i_maxneg = np.argmin(signflip, 0)
     i_minpos = np.array(i_maxneg)
-    for i in range(0,17):
+    for i in range_rx_pos:
         if Bz[i_maxneg[i], i] < 0:
             i_minpos[i] = i_maxneg[i] + 1
         else:
             i_minpos[i] = 0
-    Bz_maxneg = np.array([Bz[i_maxneg[i], i] for i in range(0,17)])
-    Bz_minpos = np.array([Bz[i_minpos[i], i] for i in range(0,17)])
-    slope = (Bz_minpos - Bz_maxneg) / (t[i_minpos].flatten() - t[i_maxneg].flatten())
+    Bz_maxneg = np.array([Bz[i_maxneg[i], i] for i in range_rx_pos])
+    Bz_minpos = np.array([Bz[i_minpos[i], i] for i in range_rx_pos])
+    delta_Bz = Bz_minpos - Bz_maxneg
+    delta_t = t[i_minpos].flatten() - t[i_maxneg].flatten()
+    slope = delta_Bz / delta_t
     zcmo = t[i_maxneg].flatten() - Bz_maxneg / slope
 
+    # Create ZCMO scatter plot
     zcmo_scat = go.Scatter(x=xx, y=zcmo,
                         mode='markers',
                         marker=dict(size=12),
                         name='Bz zero-crossing')
 
-    # Add points to figure
+    # Add ZCMO points to the quiver plot
     fig.add_trace(zcmo_scat)
 
+    # Specify the figure layout
     fig.layout = go.Layout(
         xaxis=dict(
             title = 'Spacing (m)'
@@ -240,22 +260,31 @@ def update_quiver(Output_dict):
             autorange='reversed'
         )
     )
+
+    # Return the figure as a Graph
     return dcc.Graph(id = 'quiver_plot', figure = fig)
 
+
+# Updates the rx position slider when points are clicked in 
+# the quiver plot.
 @app.callback(
     dash.dependencies.Output('rx_positions', 'value'),
     [dash.dependencies.Input('quiver_plot', 'clickData')]
 )
 def update_slider_from_quiver(click_data):
+    # `click_data` contains the data of the point that has been clicked
     if click_data is None:
         return 0
     else:
+        # Return the index of the element in rx_pos which is closest
+        # to the x coordinate of the point that has been clicked
         v = click_data['points'][0]['x']
         a = [float(i) for i in rx_pos]
         closest_i = np.searchsorted(a, v)
         return closest_i
 
 
+# Updates the data when model sliders are moves
 @app.callback(
     dash.dependencies.Output('modelHasChanged', 'children'),
     [dash.dependencies.Input('h1', 'value'),
@@ -263,25 +292,35 @@ def update_slider_from_quiver(click_data):
     dash.dependencies.Input('rho2', 'value'),]
     )
 def update_model(h1, rho1, rho2):
+
+    # Parse modelized data for a specific resistivity model
     h1 = str(h1)
     rho1 = 10**(rho1*0.1)
     rho1 = '{:.0f}'.format(rho1) if rho1 % 100 == 0 else '{:6.4f}'.format(rho1)
     rho2 = 10**(rho2*0.1) 
     rho2 = '{:.0f}'.format(rho2) if rho2 % 100 == 0 else '{:6.4f}'.format(rho2)
-    
-    model.parseModel(h1, rho1, rho2, isV=True)
+    model.parseModel(h1, rho1, rho2, isV=False)
+
+    # Retrieve indenpendent variables
     time = model.get_timegates()
     rx_pos = model.get_rx_positions()
+
+    # Retrieve modelized data for dB-field
     sndgs_x = model.get_X_soundings()
     sndgs_z = model.get_Z_soundings()
+
+    # Retrieve modelized data for B-field (reparse modelized data)
     model.parseModel(h1, rho1, rho2, isV=False)
     sndgs_Bx = model.get_X_soundings()
     sndgs_Bz = model.get_Z_soundings()
+
+    # Compute the norm of the B-field
     norm_B = sndgs_Bx.pow(2).values
     norm_B2 = sndgs_Bz.pow(2).values
     norm_B += norm_B2
     norm_B = pd.DataFrame(norm_B ** 0.5)
-    print(str(norm_B.head(n=3)))
+
+    # Return the output data dictonary
     Output_dict= {
         axis_list[0]: time.to_json(orient='split', date_format='iso'),
         axis_list[1]: sndgs_x.to_json(orient='split', date_format='iso'),
@@ -292,6 +331,8 @@ def update_model(h1, rho1, rho2):
     }
     return json.dumps(Output_dict)
 
+
+# Changes the Y axis type to Linear when a z-x plane plot is displayed 
 @app.callback(
     dash.dependencies.Output('yaxis-type', 'value'),
     [dash.dependencies.Input('yaxis-column', 'value'),
@@ -303,6 +344,8 @@ def force_linear_yaxis_type(yaxis_col_val, xaxis_col_val):
     else:
         return 'Log'
 
+
+# Changes the X axis type to Linear when a z-x plane plot is displayed 
 @app.callback(
     dash.dependencies.Output('xaxis-type', 'value'),
     [dash.dependencies.Input('yaxis-column', 'value'),
