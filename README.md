@@ -28,4 +28,9 @@ python tem_dash_app.py
 ```
 2. Go to your favorite browser and visit http://localhost:8050 to acces the application
 
+## What the app looks like
+
+![figure1](app_capture.PNG)
+![figure2](app_capture2.png)
+
 
