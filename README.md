@@ -17,7 +17,7 @@ pip install pandas
 pip install numpy
 ```
 
-3. Unzipped the data. Make sure the folder name is "MdlemAll".
+3. Unzip the data in MdlemAll.zip. Make sure the folder name is "MdlemAll".
 
 ## Running the application
 
@@ -26,7 +26,7 @@ pip install numpy
 ```
 python tem_dash_app.py
 ```
-2. Go to your favorite browser and visit http://localhost:8050 to acces the application
+2. Go to your favorite browser and visit http://localhost:8050 to access the application
 
 ## What the app looks like
 
