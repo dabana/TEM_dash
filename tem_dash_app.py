@@ -6,6 +6,7 @@ import numpy as np
 import plotly.graph_objs as go
 import plotly.figure_factory as ff
 import json
+from myquiver import create_quiver
 from model import Model
 
 app = dash.Dash() # Instentiate a Dash app
@@ -207,13 +208,13 @@ def update_quiver(Output_dict):
     u = dfBx.iloc[selected_idx].values 
     v = dfBz.iloc[selected_idx].values
     angle = np.arctan(v/u)
-    scaleratio = 0.75 # workaround for Plotly.py issue#1187
-    u = norm * np.cos(angle) * scaleratio
+    u = norm * np.cos(angle)
     v = norm * np.sin(angle)
 
     # Create B-field quiver plot
-    fig = ff.create_quiver(x, y, u, v, 
-                        scale = 1.2,
+    fig = create_quiver(x, y, u, v, 
+                        scale = 1,
+                        scaleratio = 1.25,
                         name='B-field in X-Z plane')
 
     # Compute the zero-crossing move-out (ZCMO) of Bz
@@ -248,18 +249,10 @@ def update_quiver(Output_dict):
     # Add ZCMO points to the quiver plot
     fig.add_trace(zcmo_scat)
 
-    # Specify the figure layout
-    fig.layout = go.Layout(
-        xaxis=dict(
-            title = 'Spacing (m)'
-        ),
-        yaxis=dict(
-            title = 'Time (us)',
-            scaleratio = scaleratio,
-            scaleanchor="x",
-            autorange='reversed'
-        )
-    )
+    # Specify additionnal options to the figure layout
+    fig.layout.xaxis['title'] = 'Spacing (m)'
+    fig.layout.yaxis['title'] = 'Time (us)'
+    fig.layout.yaxis['autorange'] = 'reversed'
 
     # Return the figure as a Graph
     return dcc.Graph(id = 'quiver_plot', figure = fig)
